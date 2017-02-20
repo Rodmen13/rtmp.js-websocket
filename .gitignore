@@ -3,3 +3,6 @@
 node_modules/
 media/
 build/
+.tscache/
+.baseDir.ts
+index.html

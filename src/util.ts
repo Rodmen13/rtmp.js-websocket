@@ -16,7 +16,7 @@
 
 // Parts and shims of the Mozilla Shumway project to run amf.ts file logic.
 
-var jsGlobal = (function() { return this || (1, eval)('this//# sourceURL=jsGlobal-getter'); })();
+var jsGlobal = (function() { return this || (void 1, eval)('this//# sourceURL=jsGlobal-getter'); })();
 
 /** @const */ var release: boolean = false;
 

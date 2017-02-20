@@ -15,89 +15,7 @@
  */
 
 module RtmpJs.Browser {
-  var DEFAULT_RTMP_PORT = 1935;
   var COMBINE_RTMPT_DATA = true;
-
-  var TCPSocket = (<any>navigator).mozTCPSocket;
-
-  export class RtmpTransport extends BaseTransport {
-    host: string;
-    port: number;
-    ssl: boolean;
-
-    constructor(connectionSettings) {
-      super();
-
-      if (typeof connectionSettings === 'string') {
-        connectionSettings = {host: connectionSettings};
-      }
-
-      this.host = connectionSettings.host || 'localhost';
-      this.port = connectionSettings.port || DEFAULT_RTMP_PORT;
-      this.ssl = !!connectionSettings.ssl || false;
-    }
-
-    connect(properties, args?) {
-      if (!TCPSocket) {
-        throw new Error('Your browser does not support socket communication.\n' +
-          'Currenly only Firefox with enabled mozTCPSocket is allowed (see README.md).');
-      }
-
-      var channel = this._initChannel(properties, args);
-
-      var writeQueue = [], socketError = false;
-      var createRtmpSocket = (<any>window).createRtmpSocket;
-      var socket = createRtmpSocket ?
-        createRtmpSocket({host: this.host, port: this.port, ssl: this.ssl}) :
-        TCPSocket.open(this.host, this.port, { useSecureTransport: this.ssl, binaryType: 'arraybuffer' });
-
-
-      var sendData = function (data) {
-        return socket.send(data.buffer, data.byteOffset, data.byteLength);
-      };
-
-      socket.onopen = function (e) {
-        channel.ondata = function (data) {
-          var buf = new Uint8Array(data);
-          writeQueue.push(buf);
-          if (writeQueue.length > 1) {
-            return;
-          }
-          release || console.log('Bytes written: ' + buf.length);
-          if (sendData(buf)) {
-            writeQueue.shift();
-          }
-        };
-        channel.onclose = function () {
-          socket.close();
-        };
-        channel.start();
-      };
-      socket.ondrain = function (e) {
-        writeQueue.shift();
-        release || console.log('Write completed');
-        while (writeQueue.length > 0) {
-          release || console.log('Bytes written: ' + writeQueue[0].length);
-          if (!sendData(writeQueue[0])) {
-            break;
-          }
-          writeQueue.shift();
-        }
-      };
-      socket.onclose = function (e) {
-        channel.stop(socketError);
-      };
-      socket.onerror = function (e) {
-        socketError = true;
-        console.error('socket error: ' + e.data);
-      };
-      socket.ondata = function (e) {
-        release || console.log('Bytes read: ' + e.data.byteLength);
-        channel.push(new Uint8Array(e.data));
-      };
-    }
-  }
-
 
   /*
    * RtmptTransport uses systemXHR to send HTTP requests.
@@ -105,6 +23,8 @@ module RtmpJs.Browser {
    * https://github.com/mozilla-b2g/gaia/blob/master/apps/email/README.md#running-in-firefox
    *
    * Spec at http://red5.electroteque.org/dev/doc/html/rtmpt.html
+   *
+   * Removed system flag (mozSystem: true) - trying different workaround (see rtmpt-proxy folder)
    */
   export class RtmptTransport extends BaseTransport {
     baseUrl: string;
@@ -207,10 +127,12 @@ module RtmpJs.Browser {
     data || (data = emptyPostData);
 
     var createRtmpXHR = (<any>window).createRtmpXHR;
-    var xhr = createRtmpXHR ? createRtmpXHR() : new (<any>XMLHttpRequest)({mozSystem: true});
+    var xhr = createRtmpXHR ? createRtmpXHR() : new (<any>XMLHttpRequest)();
     xhr.open('POST', path, true);
     xhr.responseType = 'arraybuffer';
     xhr.setRequestHeader('Content-Type', 'application/x-fcs');
+    // user-agent can't be set on XHR request - so Wowza will not use rtmpt :(
+    // xhr.setRequestHeader('User-Agent', 'Shockwave Flash');
     xhr.onload = function (e) {
       onload(new Uint8Array(xhr.response), xhr.status);
     };
