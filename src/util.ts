@@ -18,7 +18,7 @@
 
 var jsGlobal = (function() { return this || (void 1, eval)('this//# sourceURL=jsGlobal-getter'); })();
 
-/** @const */ var release: boolean = false;
+/** @const */ var release: boolean = true;
 
 // TODO no way around it, we need to refactor amf.js to make it easier
 Object.defineProperty(Object.prototype, 'asSetPublicProperty', {

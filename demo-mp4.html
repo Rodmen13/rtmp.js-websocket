@@ -65,9 +65,11 @@ limitations under the License.
 
       var ns = e.stream;
       ns.ondata = function (message) {
+          /*
         console.log('#packet (' + message.typeId + '): ' +
           Array.prototype.map.call(message.data,
           function (i) { return (i + 256).toString(16).substr(1); }).join(' ') );
+          */
         if (message.data.length > 0) {
           mp4.packet(message.typeId, message.data);
         }
@@ -90,8 +92,6 @@ limitations under the License.
 
     <table>
       <tr><th>Packets: </th><td id="packets">0</td></tr>
-      <tr><th>MP4 file length: </th><td id="mp4len">0</td></tr>
-      <tr><th>MP4 file: </th><td><button onclick="mp4.generate()">Generate</button> <a id="mp4link" download="file.mp4">Download</a></td></tr>
     </table>
     <video id="mp4video" autoplay controls></video>
     <script>
@@ -105,16 +105,14 @@ limitations under the License.
         }
 
         this.initialized = true;
-        this.file = [];
-        this.fileLength = 0;
         this.mux = new RtmpJs.MP4.MP4Mux(RtmpJs.MP4.parseFLVMetadata(metadata));
         this.mux.ondata = function (data) {
-          if (this.fileLength > mp4MaxSize) return;
-
-          this.file.push(data);
-          this.fileLength += data.length;
-          document.getElementById('mp4len').textContent = this.fileLength;
+            dataSource.onData(data)
         }.bind(this);
+        this.mux.oncodecinfo = function (codecs) {
+          dataSource.mimeType = 'video/mp4; codecs=\"' + codecs.join(',') + '\"';
+          console.log(dataSource.mimeType);
+        };
 
         // process pending data
         while (this.pendingPackets.length > 0) {
@@ -128,15 +126,18 @@ limitations under the License.
           return;
         }
         this.mux.pushPacket(type, new Uint8Array(data));
-      },
-      generate: function () {
-        this.mux.flush();
-
-        var blob = new Blob(this.file, {type: 'application/octet-stream'});
-        document.getElementById('mp4link').href =
-        document.getElementById('mp4video').src = URL.createObjectURL(blob);
       }
     };
+
+    var dataSource = {
+        mimeType: '',
+        onData: null
+    };
+    var mediaSource = new MediaSource();
+    this.msewriter = new RtmpJs.MSEWriter(mediaSource);
+    this.msewriter.listen(dataSource);
+    document.getElementById('mp4video').src = URL.createObjectURL(mediaSource);
+
     </script>
   </body>
 </html>

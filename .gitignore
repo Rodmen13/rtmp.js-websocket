@@ -6,3 +6,5 @@ build/
 .tscache/
 .baseDir.ts
 index.html
+.idea
+*.iml
