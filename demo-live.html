@@ -27,7 +27,7 @@ limitations under the License.
     //var startInfo = {schema: "rtmp", host: "localhost", app: "oflaDemo", video: "mp4:bear.mp4"};
     // var startInfo = {schema: "rtmpt", host: "localhost", app: "oflaDemo", video: "mp4:mozilla_story.mp4"};
     //var startInfo = {schema: "rtmp", host: "localhost", app: "oflaDemo", video: "hobbit_vp6.flv"};
-    var startInfo = {schema: "rtmpt", host: "localhost", app: "vod", video: "mp4:sample.mp4"};
+    var startInfo = {schema: "rtmpt", host: "localhost", app: "s", video: "aac_f-8621ae3a-7761-4064-8117-536dc4ad0378"};
     var mp4MaxSize = 2000000;
 
     var props = {
@@ -53,7 +53,7 @@ limitations under the License.
       console.log('#response');
     };
     rtmp.onevent = function (e) {
-      console.log('#event');
+      // console.log('#event');
     };
     rtmp.onconnected = function (e) {
       console.log('#connected');
@@ -103,6 +103,18 @@ limitations under the License.
       initialized: false,
       pendingPackets: [],
       init: function (metadata) {
+        // live stream: no video information in flv metadata header
+        // try to fake it
+        // -> not so good, only first frame rendered
+        metadata.videocodecid = 'avc1';
+        metadata.avclevel = 21;
+        metadata.avcprofile = 66;
+        metadata.height = 360;
+        metadata.width = 640;
+        metadata.framerate = 30;
+
+
+        console.log(RtmpJs.MP4.parseFLVMetadata(metadata));
 
         if (!metadata.audiocodecid && !metadata.videocodecid) {
           return; // useless metadata?

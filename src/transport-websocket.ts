@@ -5,6 +5,7 @@ module RtmpJs.Browser {
 
   export class RtmpWsTransport extends BaseTransport {
     wsurl: string;
+    socket: WebSocket;
 
     constructor(connectionSettings) {
       super();
@@ -21,21 +22,16 @@ module RtmpJs.Browser {
 
       var socketError = false;
       var socket = new WebSocket(this.wsurl);
+      this.socket = socket;
       socket.binaryType = 'arraybuffer';
 
       release || console.log('Opening binary websocket connection: ' + this.wsurl);
-
-      var sendData = function (data) {
-        return socket.send(data.buffer);
-      };
 
       socket.onopen = function () {
         channel.ondata = function (data) {
           var buf = new Uint8Array(data);
           release || console.log('Bytes written: ' + buf.length);
-          if (!sendData(buf)) {
-            release || console.log('Error writing to WebSocket');
-          }
+          socket.send(buf.buffer);
         };
         channel.onclose = function () {
           socket.close();
@@ -53,6 +49,10 @@ module RtmpJs.Browser {
         release || console.log('Bytes read: ' + e.data.byteLength);
         channel.push(new Uint8Array(e.data));
       };
+    }
+
+    close() {
+      this.socket.close();
     }
   }
 
