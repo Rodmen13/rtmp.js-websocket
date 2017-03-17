@@ -25,8 +25,9 @@ limitations under the License.
     <script>
 
     //var startInfo = {schema: "rtmp", host: "localhost", app: "oflaDemo", video: "mp4:bear.mp4"};
-    var startInfo = {schema: "rtmpt", host: "localhost", app: "oflaDemo", video: "mp4:mozilla_story.mp4"};
+    // var startInfo = {schema: "rtmpt", host: "localhost", app: "oflaDemo", video: "mp4:mozilla_story.mp4"};
     //var startInfo = {schema: "rtmp", host: "localhost", app: "oflaDemo", video: "hobbit_vp6.flv"};
+    var startInfo = {schema: "rtmpt", host: "localhost", app: "vod", video: "mp4:sample.mp4"};
     var mp4MaxSize = 2000000;
 
     var props = {
@@ -43,9 +44,10 @@ limitations under the License.
             };
 
 
-    var rtmp = startInfo.schema == 'rtmp' ?
-      new RtmpJs.Browser.RtmpTransport({host:startInfo.host, port:1935}) :
-      new RtmpJs.Browser.RtmptTransport({host:startInfo.host, port:5080});
+    var rtmp = new RtmpJs.Browser.RtmpWsTransport({url: 'ws://localhost:5999'});
+    // startInfo.schema == 'rtmp' ?
+    // new RtmpJs.Browser.RtmpTransport({host:startInfo.host, port:1935}) :
+    // new RtmpJs.Browser.RtmptTransport({host:startInfo.host, port:5080});
 
     rtmp.onresponse = function (e) {
       console.log('#response');
