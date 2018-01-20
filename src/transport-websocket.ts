@@ -43,10 +43,10 @@ module RtmpJs.Browser {
       };
       socket.onerror = function (e) {
         socketError = true;
-        release || console.error('WebSocket error: ' + e.message);
+        release || console.error('WebSocket error: ', e);
       };
       socket.onmessage = function (e) {
-        release || console.log('Bytes read: ' + e.data.byteLength);
+        release || console.log('Bytes read: ', e.data.byteLength);
         channel.push(new Uint8Array(e.data));
       };
     }
